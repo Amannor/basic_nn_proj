@@ -4,12 +4,12 @@ import typing
 
 import numpy as np
 from keras.datasets import mnist
-
-DATA_DIR = "data"
-TRAIN_FILE_IMG, TRAIN_FILE_LABLES = os.path.join(DATA_DIR, 'train', 'train-images.idx3-ubyte'), os.path.join(DATA_DIR, 'train', 'train-labels.idx1-ubyte')
-TEST_FILE_IMG, TEST_FILE_LABLES = os.path.join(DATA_DIR, 'test', 't10k-images.idx3-ubyte'), os.path.join(DATA_DIR, 'test', 't10k-labels.idx1-ubyte')
-
-INPUT_LAYER_LEN, HIDDEN_LAYER_LEN, OUTPUT_LAYER_LEN = None, 20, 10
+#
+# DATA_DIR = "data"
+# TRAIN_FILE_IMG, TRAIN_FILE_LABLES = os.path.join(DATA_DIR, 'train', 'train-images.idx3-ubyte'), os.path.join(DATA_DIR, 'train', 'train-labels.idx1-ubyte')
+# TEST_FILE_IMG, TEST_FILE_LABLES = os.path.join(DATA_DIR, 'test', 't10k-images.idx3-ubyte'), os.path.join(DATA_DIR, 'test', 't10k-labels.idx1-ubyte')
+#
+# INPUT_LAYER_LEN, HIDDEN_LAYER_LEN, OUTPUT_LAYER_LEN = None, 20, 10
 
 
 
@@ -123,38 +123,6 @@ def sigmoid_prime(x: np.ndarray) -> np.ndarray:
     """Derivative of the sigmoid function."""
     return sigmoid(x)*(1-sigmoid(x))
 
-def relu(x: np.ndarray) -> np.ndarray:
-    return max(0, x)
-
-
-# def get_data(train: bool=True) -> tuple:
-#     images_data, labels_data = None, None
-#     if train:
-#         img_file, label_file = TRAIN_FILE_IMG, TRAIN_FILE_LABLES
-#     else:
-#         img_file, label_file = TEST_FILE_IMG, TEST_FILE_LABLES
-#
-#     # Source: https://stackoverflow.com/a/53181925
-#     with open(img_file, 'rb') as f:
-#         magic, size = struct.unpack(">II", f.read(8))
-#         nrows, ncols = struct.unpack(">II", f.read(8))
-#         data = np.fromfile(f, dtype=np.dtype(np.uint8).newbyteorder('>'))
-#         images_data = data.reshape((size, nrows, ncols))
-#
-#         '''Drawing the digit
-#         plt.imshow(data[0, :, :], cmap='gray')
-#         plt.show()
-#         '''
-#
-#     with open(label_file, 'rb') as f:
-#         magic, size = struct.unpack(">II", f.read(8))
-#         nrows, ncols = struct.unpack(">II", f.read(8))
-#         data = np.fromfile(f, dtype=np.dtype(np.uint8).newbyteorder('>'))
-#         labels_data = data.reshape((size, nrows, ncols))
-#
-#     return images_data, labels_data
-
-
 def main() -> None:
     (train_X, train_y), (test_X, test_y) = mnist.load_data()
     train_X.shape = (train_X.shape[0], train_X.shape[1]*train_X.shape[2], 1)
@@ -165,28 +133,6 @@ def main() -> None:
 
     net = Network([784, 30, 10])
     net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
-
-
-
-
-    # http://rasbt.github.io/mlxtend/user_guide/data/loadlocal_mnist/
-    # if not platform.system() == 'Windows':
-    #     X, y = loadlocal_mnist(
-    #         images_path=TRAIN_FILE_IMG,
-    #         labels_path=TRAIN_FILE_LABLES)
-    #
-    # else:
-    #     X, y = loadlocal_mnist(
-    #         images_path=TRAIN_FILE_IMG,
-    #         labels_path=TRAIN_FILE_LABLES)
-
-    #the end y_vector should be np.full((OUTPUT_LAYER_LEN, 1), 0) and then y_vec[y] = 1
-    # INPUT_LAYER_LEN = len(X[0])
-    # net = Network([INPUT_LAYER_LEN, HIDDEN_LAYER_LEN, OUTPUT_LAYER_LEN])
-
-
-
-
 
 if __name__ == '__main__':
     main()
