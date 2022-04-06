@@ -1,16 +1,8 @@
-import os
 import random
 import typing
 
 import numpy as np
 from keras.datasets import mnist
-#
-# DATA_DIR = "data"
-# TRAIN_FILE_IMG, TRAIN_FILE_LABLES = os.path.join(DATA_DIR, 'train', 'train-images.idx3-ubyte'), os.path.join(DATA_DIR, 'train', 'train-labels.idx1-ubyte')
-# TEST_FILE_IMG, TEST_FILE_LABLES = os.path.join(DATA_DIR, 'test', 't10k-images.idx3-ubyte'), os.path.join(DATA_DIR, 'test', 't10k-labels.idx1-ubyte')
-#
-# INPUT_LAYER_LEN, HIDDEN_LAYER_LEN, OUTPUT_LAYER_LEN = None, 20, 10
-
 
 
 class Network(object):
