@@ -1,19 +1,26 @@
 import random
 import typing
+import math
+import json
 
 import numpy as np
 from keras.datasets import mnist
+import warnings
+warnings.filterwarnings("error")
 
 
 class Network(object):
 #http://neuralnetworksanddeeplearning.com/chap1.html
 
     def __init__(self, sizes: typing.List[int]) -> None:
+        weights_denominator_by_layer = {0: 1000, 1: 100}
         self.num_layers = len(sizes)
         self.sizes = sizes
-        self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
-        self.weights = [np.random.randn(y, x)
-                        for x, y in zip(sizes[:-1], sizes[1:])]
+        self.biases = [np.random.randn(y, 1)/100000 for y in sizes[1:]]
+
+
+        self.weights = [np.random.randn(y, x)/weights_denominator_by_layer[i]
+                        for i, (y, x) in enumerate(zip(sizes[1:], sizes[:-1]))]
         '''
         Note: to calculate layer i: a_i = activation_func(weights[i-1].dot(a_(i-1)+biases[i-1]))
         or simply put  func(wa+b)
@@ -82,7 +89,11 @@ class Network(object):
             activations.append(activation)
 
         #backward pass
-        delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
+        # y_vec = np.zeros(len(self.biases[-1]))
+        # y_vec[y] = 1
+        cost_derivative_res = self.cost_derivative(activations[-1], get_one_hot(y)) #Instead of y should y_vec #TODO
+        sigmoid_prime_res = sigmoid_prime(zs[-1])
+        delta = cost_derivative_res * sigmoid_prime_res
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
 
@@ -99,6 +110,7 @@ class Network(object):
         network outputs the correct result. Note that the neural
         network's output is assumed to be the index of whichever
         neuron in the final layer has the highest activation."""
+        final_layer = [self.feed_forward(x) for (x,y) in test_data]
         test_results = [(np.argmax(self.feed_forward(x)), y)
                         for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
@@ -108,25 +120,60 @@ class Network(object):
         \partial a for the output activations."""
         return (output_activations-y)
 
-def sigmoid(x: np.ndarray) -> np.ndarray:
-    return 1/(1+np.exp(-x))
+def get_one_hot(index: int, size:int = 10) -> np.ndarray:
+    res = np.zeros(size)
+    res = res.reshape(10,1)
+    res[index] = 1
+    return res
+
+
+def sigmoid(x):
+    """
+    A numerically stable version of the logistic sigmoid function.
+    Source: https://stackoverflow.com/a/57178527
+    """
+    pos_mask = (x >= 0)
+    neg_mask = (x < 0)
+    z = np.zeros_like(x)
+    z[pos_mask] = np.exp(-x[pos_mask])
+    z[neg_mask] = np.exp(x[neg_mask])
+    top = np.ones_like(x)
+    top[neg_mask] = z[neg_mask]
+    return top / (1 + z)
+
+# def sigmoid(x: np.ndarray) -> np.ndarray:
+#     res = x
+#     # See https://stackoverflow.com/a/30368735
+#     try:
+#         res = 1.0/(1.0+np.exp(-x))
+#     except RuntimeWarning:
+#         print("RuntimeWarning")
+#         # import ipdb;
+#         # ipdb.set_trace()
+#     return res
 
 def sigmoid_prime(x: np.ndarray) -> np.ndarray:
     """Derivative of the sigmoid function."""
-    return sigmoid(x)*(1-sigmoid(x))
+    return sigmoid(x)*(1.0-sigmoid(x))
 
 def main() -> None:
     (train_X, train_y), (test_X, test_y) = mnist.load_data()
     train_X.shape = (train_X.shape[0], train_X.shape[1]*train_X.shape[2], 1)
     training_data = [(x, y) for x, y in zip(train_X, train_y)]
+    # For debug only
+    # training_data = [(x, get_one_hot(y)) for x, y in zip(train_X, train_y) if y == 2]
+    # training_data = [(x, y) for x, y in zip(train_X, train_y) if y == 2]
+    # training_data = training_data[:100] #For debug only
+
 
     test_X.shape = (test_X.shape[0], test_X.shape[1]*test_X.shape[2], 1)
-    test_data = [(x, y) for x, y in zip(test_X, test_y)]
+    test_data = [(x, get_one_hot(y)) for x, y in zip(test_X, test_y)]
 
     net = Network([784, 30, 10])
-    net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
+    # net.SGD(training_data, 30, 10, 0.5, test_data=test_data)
+    for learning_rate in np.arange(0.5, 3.0, 0.5):
+        print(f"*************Learning rate {learning_rate}*************")
+        net.SGD(training_data, 30, 10, learning_rate, test_data=training_data)
 
 if __name__ == '__main__':
     main()
-
-
